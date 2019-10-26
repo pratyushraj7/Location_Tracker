@@ -4,6 +4,7 @@ import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/fire
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Plugins } from '@capacitor/core';
+import leaflet from 'leaflet';
 const { Geolocation } = Plugins;
  
 declare var google;
@@ -110,7 +111,7 @@ export class HomePage {
   }
 
   loadMap() {
-    let latLng = new google.maps.LatLng(51.9036442, 7.6673267);
+    let latLng = new leaflet.maps.LatLng(51.9036442, 7.6673267);
  
     let mapOptions = {
       center: latLng,
@@ -118,7 +119,26 @@ export class HomePage {
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
  
-    this.map = new google.maps.Map(this.mapElement.nativeElement, mapOptions);
-  }
-}
+    this.map = new leaflet.maps.Map(this.mapElement.nativeElement, mapOptions);
+  
+    this.map = leaflet.map("map").fitWorld();
+    leaflet.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attributions: 'www.tphangout.com',
+      maxZoom: 18
+    }).addTo(this.map);
+    this.map.locate({
+      setView: true,
+      maxZoom: 10
+    }).on('locationfound', (e) => {
+      let markerGroup = leaflet.featureGroup();
+      let marker: any = leaflet.marker([e.latitude, e.longitude]).on('click', () => {
+        alert('Marker clicked');
+      })
+      markerGroup.addLayer(marker);
+      this.map.addLayer(markerGroup);
+      }).on('locationerror', (err) => {
+        alert(err.message);
+      })
  
+  }
+  }
